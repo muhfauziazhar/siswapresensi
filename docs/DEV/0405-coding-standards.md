@@ -49,9 +49,8 @@ class PresensiController extends Controller
         
         return response()->json([
             'success' => true,
-            'data' => $presensi,
-            'message' => 'Presensi berhasil dibuat'
-        ], 201);
+            'data' => $presensi
+        ]);
     }
 }
 ```
@@ -71,6 +70,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Presensi extends Model
 {
@@ -85,11 +85,7 @@ class Presensi extends Model
         'tanggal' => 'date',
     ];
 
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
+    // Relationships
     public function siswa(): BelongsTo
     {
         return $this->belongsTo(Siswa::class);
@@ -100,9 +96,16 @@ class Presensi extends Model
         return $this->belongsTo(Jadwal::class);
     }
 
+    // Accessor for full name
     public function getNamaLengkapAttribute(): string
     {
         return "{$this->siswa->nama_depan} {$this->siswa->nama_belakang}";
+    }
+
+    // Scopes
+    public function scopeHadirIni($query)
+    {
+        return $query->where('tanggal', now()->toDateString());
     }
 }
 ```
@@ -175,6 +178,7 @@ class QRCodeService
 - Keep components small and focused
 - Use props interface for type safety
 - Use consistent prop naming
+- Handle loading and error states
 
 ```jsx
 import React from 'react';
@@ -240,7 +244,7 @@ function usePresensi(jadwalId: number) {
       const data = await response.json();
 
       if (data.success) {
-serensi(data.data);
+        setPresensi(data.data);
       } else {
         setError(data.message);
       }
@@ -283,10 +287,20 @@ export const formatIndonesianDate = (date: Date | string): string => {
  * @returns {boolean} True if date is today
  */
 export const isToday = (date: Date | string): boolean => {
-  const d = new Date(date);
   const today = new Date();
+  const d = new Date(date);
   
   return d.toDateString() === today.toDateString();
+};
+
+/**
+ * Calculate time difference
+ * @param {Date} start - Start date
+ * @param {Date} end - End date
+ * @returns {number} Time difference in milliseconds
+ */
+export const calculateTimeDiff = (start: Date, end: Date): number => {
+  return end.getTime() - start.getTime();
 };
 ```
 
@@ -300,25 +314,11 @@ export const isToday = (date: Date | string): boolean => {
 app/
 ├── Http/
 │   ├── Controllers/
-│   │   ├── AuthController.php
-│   │   ├── PresensiController.php
-│   │   └── ...
 │   ├── Middleware/
-│   │   ├── Authenticate.php
-│   │   └── CheckRole.php
-│   ├── Requests/
-│   │   ├── PresensiRequest.php
-│   │   └── ...
-│   └── ...
+│   └── Requests/
 ├── Models/
-│   ├── User.php
-│   ├── Siswa.php
-│   └── ...
 ├── Services/
-│   ├── QRCodeService.php
-│   ├── NotificationService.php
-│   └── ...
-└── ...
+└── Providers/
 ```
 
 ### Frontend Structure
@@ -327,66 +327,91 @@ app/
 resources/js/
 ├── Pages/
 │   ├── Auth/
-│   │   ├── Login.jsx
-│   │   └── Register.jsx
 │   ├── Dashboard/
-│   │   ├── AdminDashboard.jsx
-│   │   ├── GuruDashboard.jsx
-│   │   ├── SiswaDashboard.jsx
-│   │   └── OrangTuaDashboard.jsx
 │   ├── Presensi/
-│   │   ├── GuruPresensi.jsx
-│   │   └── SiswaQRCode.jsx
-│   └── ...
-├── Components/
+│   └── Layouts/
+├�── Components/
 │   ├── Common/
-│   │   ├── Button.jsx
-│   │   ├── Input.jsx
-│   │   └── Modal.jsx
 │   ├── Presensi/
-│   │   ├── QRCodeDisplay.jsx
-│   │   └── PresensiForm.jsx
-│   │   └── ...
-│   └── ...
-├── Hooks/
-│   ├── usePresensi.js
-│   ├── useAuth.js
-│   └── ...
+│   └── Dashboard/
+├�── Hooks/
 ├── Utils/
-│   ├── date.js
-│   └── validation.js
-└── ...
+└── Layouts/
 ```
 
 ---
 
-## Code Review Checklist
+## Best Practices
 
 ### Backend
 
-- [ ] PSR-12 compliance
-- [ ] Laravel best practices followed
-- [ ] Controllers are thin
-- [ ] Business logic in services
-- [ ] Models use proper relationships
-- [ ] Form requests used for validation
-- [ ] Authorization middleware applied
-- [ ] Error handling implemented
-- [ ] Logging added where appropriate
-- [ ] Comments added for complex logic
+- Use PSR-12 coding standards
+- Use Laravel best practices
+- Keep controllers thin
+- Use service classes for business logic
+- Use Eloquent ORM for database operations
+- Use middleware for cross-cutting concerns
+- Write unit tests for critical components
+- Document complex logic with comments
+- Use type hints where helpful
 
 ### Frontend
 
-- [ ] Functional components used
-- [ ] Hooks are properly implemented
-- [ ] Props interface defined
-- [ ] Consistent prop naming
-- [ ] Loading and error states handled
-- [ ] Accessibility considered (ARIA labels, keyboard navigation)
-- [ ] Responsive design implemented
-- [ ] Performance optimized (memo, useCallback)
-- [ ] Error boundaries implemented
-- [ ] Console.log statements removed (except for debugging)
+- Use functional components with hooks
+- Keep components small and focused
+- Use TypeScript for type safety (optional but recommended)
+- Follow React best practices
+- Use Tailwind CSS for styling
+- Test user behavior, not implementation details
+- Mock API calls with MSW
+- Test accessibility (a11y)
+- Keep tests focused and maintainable
+
+### General
+
+- Write clear, descriptive commit messages
+- Follow conventional commit format
+- Review code before merging
+- Keep documentation up to date
+- Refactor when needed
+- Don't commit broken code
+- Don't commit sensitive data (API keys, passwords)
+
+---
+
+## Documentation Standards
+
+### PHPDoc
+
+```php
+<?php
+
+/**
+ * Generate QR code for student
+ *
+ * @param \App\Models\Siswa $siswa Student model
+ * @param \App\Models\Jadwal $jadwal Schedule model
+ * @return string Base64-encoded QR code
+ *
+ * @throws \Exception If QR code generation fails
+ */
+public function generate(Siswa $siswa, Jadwal $jadwal): string;
+```
+
+### JSDoc
+
+```jsx
+/**
+ * Format date to Indonesian format
+ *
+ * @param {Date|string} date - Date to format
+ * @returns {string} Formatted date in Indonesian format
+ *
+ * @example
+ * formatIndonesianDate('2024-02-16') // '16 Februari 2024'
+ */
+export const formatIndonesianDate = (date: Date | string): string;
+```
 
 ---
 
@@ -394,26 +419,25 @@ resources/js/
 
 ### Backend
 
-- [ ] Input validation on all user inputs
-- [ ] SQL injection prevention (use Eloquent)
-- [ ] XSS prevention (escape output)
-- [ ] CSRF protection enabled
-- [ ] Password hashing (bcrypt)
-- [ ] Token-based authentication (Laravel Sanctum)
-- [ ] Rate limiting on sensitive endpoints
-- [ ] File upload validation
-- [ ] Environment variables for sensitive data
+- Validate all user inputs
+- Use parameterized queries (Eloquent)
+- Escape all outputs
+- Use CSRF protection for forms
+- Use Laravel's built-in security features
+- Never trust user input
+- Use HTTPS for all communications
+- Hash passwords with bcrypt
+- Use Laravel Sanctum for API authentication
 
 ### Frontend
 
-- [ ] Never trust user input
-- [ ] Validate all forms
-- [ ] Sanitize all outputs
-- [ ] Use HTTPS for all API calls
-- [ ] Store tokens securely (httpOnly cookies)
-- [ ] Implement CSRF tokens
-- [ ] Use Content Security Policy (CSP)
-- [ ] Validate API responses
+- Never trust user input
+- Sanitize all outputs
+- Use React's built-in XSS protection
+- Validate forms on both client and server
+- Store tokens securely (httpOnly cookies)
+- Implement proper error boundaries
+- Use Content Security Policy (CSP) headers
 
 ---
 
@@ -421,22 +445,43 @@ resources/js/
 
 ### Backend
 
-- [ ] Use database indexes
-- [ ] Optimize queries (eager loading, select only needed columns)
-- [ ] Use caching (Redis, Laravel cache)
-- [ ] Use pagination for large datasets
-- [ ] Avoid N+1 queries
-- [ ] Use queue for heavy operations
+- Use database indexes
+- Optimize queries (avoid N+1 problems)
+- Use caching (Redis, Laravel cache)
+- Use pagination for large datasets
+- Queue heavy operations (jobs, notifications)
+- Monitor slow queries
 
 ### Frontend
 
-- [ ] Use React.memo for expensive components
-- [ ] Use useCallback and useMemo
-- [ ] Lazy load components
-- [ ] Code splitting
-- [ ] Optimize images (compress, lazy load)
-- [ ] Debounce user input
-- [ ] Virtual scrolling for long lists
+- Use React.memo for expensive components
+- Use useCallback and useMemo
+- Lazy load components
+- Optimize images (compress, lazy load)
+- Debounce user input
+- Code splitting for large bundles
+
+---
+
+## Testing Best Practices
+
+### Backend
+
+- Write unit tests for all critical components
+- Use RefreshDatabase trait for database tests
+- Mock external dependencies
+- Test both success and failure scenarios
+- Use descriptive test names
+- Follow AAA pattern (Arrange, Act, Assert)
+
+### Frontend
+
+- Test user behavior, not implementation details
+- Mock API calls with MSW
+- Test accessibility (a11y)
+- Test loading and error states
+- Test keyboard navigation
+- Keep tests focused and maintainable
 
 ---
 
