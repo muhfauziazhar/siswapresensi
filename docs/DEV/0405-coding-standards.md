@@ -1,8 +1,13 @@
 # Coding Standards - SiswaPresensi
 
+> Standar ini berlaku untuk semua kode di project `siswapresensi-app`.
+> Backend: Laravel 12 + PHP 8.2+ | Frontend: React 19 + TypeScript 5.7+
+
+---
+
 ## PHP Standards
 
-### PSR-12 Compliance
+### PSR-12 Compliance (via Laravel Pint)
 
 - Class names: `PascalCase`
 - Method names: `camelCase`
@@ -10,47 +15,54 @@
 - Variables: `camelCase`
 - File names: `PascalCase`
 
+**Linting command:**
+```bash
+# Format semua file PHP
+composer lint          # pint --parallel
+
+# Check tanpa modify
+composer test:lint     # pint --parallel --test
+```
+
 ### Laravel Best Practices
 
-#### Controllers
+#### Controllers (Inertia Pattern)
 
-- Use resource controllers for RESTful APIs
-- Return JSON responses with consistent structure
-- Use form requests for validation
-- Use authorization middleware
-- Keep controllers thin (business logic in services)
+- Gunakan `Inertia::render()` untuk mengembalikan pages, **bukan** `response()->json()`
+- Gunakan form requests untuk validasi
+- Gunakan authorization middleware
+- Keep controllers thin (business logic di services)
 
 ```php
 <?php
 
 namespace App\Http\Controllers;
 
-use App\Models\Siswa;
+use App\Models\Presensi;
 use App\Http\Requests\PresensiRequest;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PresensiController extends Controller
 {
-    public function index(PresensiRequest $request)
+    public function index(PresensiRequest $request): Response
     {
         $presensi = Presensi::with(['siswa', 'jadwal'])
             ->where('jadwal_id', $request->jadwal_id)
-            ->get();
+            ->paginate(20);
 
-        return response()->json([
-            'success' => true,
-            'data' => $presensi
+        return Inertia::render('presensi/guru-presensi', [
+            'presensi' => $presensi,
         ]);
     }
 
-    public function store(PresensiRequest $request)
+    public function store(PresensiRequest $request): RedirectResponse
     {
-        $presensi = Presensi::create($request->validated());
-        
-        return response()->json([
-            'success' => true,
-            'data' => $presensi
-        ]);
+        Presensi::create($request->validated());
+
+        return redirect()->route('presensi.index')
+            ->with('success', 'Presensi berhasil dicatat.');
     }
 }
 ```
@@ -58,10 +70,10 @@ class PresensiController extends Controller
 #### Models
 
 - Use Eloquent ORM
-- Define fillable and guarded properties
-- Use relationships and scopes
-- Use casts for type casting
-- Use accessors and mutators for computed properties
+- Define `$fillable` (never use `$guarded = []`)
+- Use typed relationships dan return types
+- Use `$casts` untuk type casting
+- Use scopes untuk reusable queries
 
 ```php
 <?php
@@ -85,7 +97,6 @@ class Presensi extends Model
         'tanggal' => 'date',
     ];
 
-    // Relationships
     public function siswa(): BelongsTo
     {
         return $this->belongsTo(Siswa::class);
@@ -94,12 +105,6 @@ class Presensi extends Model
     public function jadwal(): BelongsTo
     {
         return $this->belongsTo(Jadwal::class);
-    }
-
-    // Accessor for full name
-    public function getNamaLengkapAttribute(): string
-    {
-        return "{$this->siswa->nama_depan} {$this->siswa->nama_belakang}";
     }
 
     // Scopes
@@ -112,10 +117,10 @@ class Presensi extends Model
 
 #### Services
 
-- Use service classes for business logic
 - Keep services stateless
 - Use dependency injection
-- Return consistent responses
+- Return typed values
+- Log meaningful events
 
 ```php
 <?php
@@ -148,11 +153,11 @@ class QRCodeService
     {
         $data = json_decode(base64_decode($qrCode), true);
 
-        if (!$data) {
+        if (! $data) {
             return false;
         }
 
-        if (!isset($data['expiry']) || $data['expiry'] < now()->timestamp) {
+        if (! isset($data['expiry']) || $data['expiry'] < now()->timestamp) {
             return false;
         }
 
@@ -161,147 +166,190 @@ class QRCodeService
 }
 ```
 
+#### Fortify Actions
+
+Customization logic untuk authentication ada di `app/Actions/Fortify/`:
+
+```php
+<?php
+
+namespace App\Actions\Fortify;
+
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Laravel\Fortify\Contracts\CreatesNewUsers;
+
+class CreateNewUser implements CreatesNewUsers
+{
+    public function create(array $input): User
+    {
+        Validator::make($input, [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ])->validate();
+
+        return User::create([
+            'name' => $input['name'],
+            'email' => $input['email'],
+            'password' => Hash::make($input['password']),
+        ]);
+    }
+}
+```
+
 ---
 
-## JavaScript/React Standards
+## TypeScript / React Standards
 
-### File Structure
+### Language: TypeScript (Mandatory)
 
-- Use `PascalCase` for components
-- Use `camelCase` for utilities
-- Use `UPPER_CASE` for constants
-- Group related files in folders
+Semua file frontend menggunakan TypeScript (`.tsx` / `.ts`). Tidak diperbolehkan menggunakan `.jsx` / `.js` untuk komponen baru.
+
+### Naming Conventions
+
+- Components: `PascalCase` (file: `kebab-case.tsx`)
+- Hooks: `use` prefix, `camelCase` (file: `use-presensi.ts`)
+- Utilities: `camelCase` (file: `kebab-case.ts`)
+- Constants: `UPPER_CASE`
+- Types/Interfaces: `PascalCase`
+
+### Type Import Convention
+
+Gunakan separate type imports (enforced by ESLint):
+
+```tsx
+// ✅ Correct
+import type { User, Presensi } from '@/types';
+import { router } from '@inertiajs/react';
+
+// ❌ Wrong — inline type imports
+import { type User, router } from '@inertiajs/react';
+```
 
 ### Component Standards
 
-- Use functional components with hooks
-- Keep components small and focused
-- Use props interface for type safety
-- Use consistent prop naming
-- Handle loading and error states
+- Use functional components (no class components)
+- Define props dengan TypeScript interface
+- Gunakan `cn()` helper untuk conditional class names
+- Ikuti shadcn/ui pattern untuk komponen UI
 
-```jsx
-import React from 'react';
+```tsx
+import { cn } from '@/lib/utils';
 
 interface QRCodeDisplayProps {
-  qrCode: string | null;
-  siswa: {
-    id: number;
-    nama_depan: string;
-    nama_belakang: string;
-    nis: string;
-  };
+    qrCode: string | null;
+    siswa: {
+        id: number;
+        nama_depan: string;
+        nama_belakang: string;
+        nis: string;
+    };
+    className?: string;
 }
 
-const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ qrCode, siswa }) => {
-  if (!qrCode) {
-    return <div>Loading...</div>;
-  }
+export function QRCodeDisplay({ qrCode, siswa, className }: QRCodeDisplayProps) {
+    if (!qrCode) {
+        return <div>Loading...</div>;
+    }
 
-  return (
-    <div className="qr-container">
-      <img 
-        src={`data:image/png;base64,${qrCode}`}
-        alt="QR Code"
-        className="qr-image"
-      />
-      <div className="siswa-info">
-        <h3>{siswa.nama_depan} {siswa.nama_belakang}</h3>
-        <p>NIS: {siswa.nis}</p>
-      </div>
-    </div>
-  );
-};
-
-export default QRCodeDisplay;
+    return (
+        <div className={cn('space-y-4 rounded-lg border p-6', className)}>
+            <img
+                src={`data:image/png;base64,${qrCode}`}
+                alt="QR Code"
+                className="mx-auto h-48 w-48"
+            />
+            <div className="text-center">
+                <h3 className="font-semibold">
+                    {siswa.nama_depan} {siswa.nama_belakang}
+                </h3>
+                <p className="text-muted-foreground text-sm">NIS: {siswa.nis}</p>
+            </div>
+        </div>
+    );
+}
 ```
 
 ### Hook Standards
 
-- Use `use` prefix for custom hooks
-- Return consistent values from hooks
-- Handle loading and error states
-- Use proper dependency arrays
+- Use `use` prefix
+- Return typed values
+- Handle loading dan error states
 
-```jsx
-import { useState, useEffect } from 'react';
+```tsx
+import { useEffect, useState } from 'react';
+import { router } from '@inertiajs/react';
 
-function usePresensi(jadwalId: number) {
-  const [presensi, setPresensi] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchPresensi();
-  }, [jadwalId]);
-
-  const fetchPresensi = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/presensi/jadwal/${jadwalId}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setPresensi(data.data);
-      } else {
-        setError(data.message);
-      }
-    } catch (err) {
-      setError('Failed to fetch presensi');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return { presensi, loading, error, refetch: fetchPresensi };
+interface UsePresensiReturn {
+    presensi: Presensi[];
+    loading: boolean;
+    error: string | null;
+    refetch: () => void;
 }
 
-export default usePresensi;
+export function usePresensi(jadwalId: number): UsePresensiReturn {
+    const [presensi, setPresensi] = useState<Presensi[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchPresensi = () => {
+        setLoading(true);
+        setError(null);
+
+        router.get(
+            `/presensi/jadwal/${jadwalId}`,
+            {},
+            {
+                onSuccess: (page) => {
+                    setPresensi(page.props.presensi as Presensi[]);
+                },
+                onError: () => {
+                    setError('Failed to fetch presensi');
+                },
+                onFinish: () => {
+                    setLoading(false);
+                },
+            },
+        );
+    };
+
+    useEffect(() => {
+        fetchPresensi();
+    }, [jadwalId]);
+
+    return { presensi, loading, error, refetch: fetchPresensi };
+}
 ```
 
 ### Utility Standards
 
 - Keep utility functions pure
-- Use JSDoc for documentation
-- Handle edge cases
-- Return consistent types
+- Use TypeScript types
+- Export named (no default exports untuk utils)
 
-```jsx
+```tsx
 /**
  * Format date to Indonesian format
- * @param {Date|string} date - Date to format
- * @returns {string} Formatted date
  */
-export const formatIndonesianDate = (date: Date | string): string => {
-  const d = new Date(date);
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  
-  return d.toLocaleDateString('id-ID', options);
-};
+export function formatIndonesianDate(date: Date | string): string {
+    const d = new Date(date);
+    return d.toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+}
 
 /**
  * Check if date is today
- * @param {Date|string} date - Date to check
- * @returns {boolean} True if date is today
  */
-export const isToday = (date: Date | string): boolean => {
-  const today = new Date();
-  const d = new Date(date);
-  
-  return d.toDateString() === today.toDateString();
-};
-
-/**
- * Calculate time difference
- * @param {Date} start - Start date
- * @param {Date} end - End date
- * @returns {number} Time difference in milliseconds
- */
-export const calculateTimeDiff = (start: Date, end: Date): number => {
-  return end.getTime() - start.getTime();
-};
+export function isToday(date: Date | string): boolean {
+    const today = new Date();
+    const d = new Date(date);
+    return d.toDateString() === today.toDateString();
+}
 ```
 
 ---
@@ -312,11 +360,14 @@ export const calculateTimeDiff = (start: Date, end: Date): number => {
 
 ```
 app/
+├── Actions/
+│   └── Fortify/             # Auth customization
 ├── Http/
 │   ├── Controllers/
 │   ├── Middleware/
 │   └── Requests/
 ├── Models/
+├── Concerns/                # Shared traits
 ├── Services/
 └── Providers/
 ```
@@ -325,19 +376,70 @@ app/
 
 ```
 resources/js/
-├── Pages/
-│   ├── Auth/
-│   ├── Dashboard/
-│   ├── Presensi/
-│   └── Layouts/
-├�── Components/
-│   ├── Common/
-│   ├── Presensi/
-│   └── Dashboard/
-├�── Hooks/
-├── Utils/
-└── Layouts/
+├── pages/                   # Inertia pages (route targets)
+│   ├── auth/
+│   ├── settings/
+│   └── dashboard.tsx
+├── components/              # Shared components
+│   ├── ui/                  # Radix UI primitives (shadcn/ui)
+│   └── ...                  # App-specific components
+├── layouts/                 # Page layouts
+│   ├── app-layout.tsx
+│   └── auth-layout.tsx
+├── hooks/                   # Custom React hooks
+├── lib/                     # Utility functions (cn, etc.)
+├── types/                   # TypeScript type definitions
+├── actions/                 # Wayfinder generated actions
+├── routes/                  # Wayfinder generated routes
+├── wayfinder/               # Wayfinder generated types
+├── app.tsx                  # App entry point
+└── ssr.tsx                  # SSR entry point
 ```
+
+---
+
+## Linting & Formatting
+
+### Backend (Laravel Pint)
+
+```bash
+# Auto-fix semua PHP files
+composer lint
+
+# Check only (CI)
+composer test:lint
+```
+
+Config: `pint.json` — menggunakan Laravel preset.
+
+### Frontend (ESLint + Prettier)
+
+```bash
+# Lint + auto-fix
+npm run lint
+
+# Format dengan Prettier
+npm run format
+
+# Check format (CI)
+npm run format:check
+
+# Type check
+npm run types
+```
+
+**ESLint rules (eslint.config.js):**
+- Import ordering (alphabetical, grouped)
+- Consistent type imports (`type` keyword)
+- React hooks rules
+- No unused variables
+
+**Prettier config (`.prettierrc`):**
+- Semicolons: yes
+- Single quotes: yes
+- Print width: 80
+- Tab width: 4
+- Tailwind class sorting via `prettier-plugin-tailwindcss`
 
 ---
 
@@ -345,37 +447,30 @@ resources/js/
 
 ### Backend
 
-- Use PSR-12 coding standards
-- Use Laravel best practices
-- Keep controllers thin
-- Use service classes for business logic
+- Use PSR-12 (enforced via Pint)
+- Keep controllers thin — business logic di services
 - Use Eloquent ORM for database operations
-- Use middleware for cross-cutting concerns
-- Write unit tests for critical components
-- Document complex logic with comments
-- Use type hints where helpful
+- Use form requests for validation
+- Use Inertia::render() untuk page responses
+- Write Pest tests untuk critical components
+- Use type hints dan return types
 
 ### Frontend
 
 - Use functional components with hooks
-- Keep components small and focused
-- Use TypeScript for type safety (optional but recommended)
-- Follow React best practices
-- Use Tailwind CSS for styling
-- Test user behavior, not implementation details
-- Mock API calls with MSW
-- Test accessibility (a11y)
-- Keep tests focused and maintainable
+- TypeScript types untuk semua props dan state
+- Use `cn()` helper untuk conditional styling
+- Follow shadcn/ui pattern untuk UI primitives
+- Use Inertia `router` untuk navigation dan form submission
+- Prefer named exports over default exports
+- Use Wayfinder-generated routes untuk type-safe links
 
 ### General
 
-- Write clear, descriptive commit messages
 - Follow conventional commit format
 - Review code before merging
 - Keep documentation up to date
-- Refactor when needed
-- Don't commit broken code
-- Don't commit sensitive data (API keys, passwords)
+- Don't commit `.env` files atau sensitive data
 
 ---
 
@@ -398,19 +493,19 @@ resources/js/
 public function generate(Siswa $siswa, Jadwal $jadwal): string;
 ```
 
-### JSDoc
+### TSDoc
 
-```jsx
+```tsx
 /**
  * Format date to Indonesian format
  *
- * @param {Date|string} date - Date to format
- * @returns {string} Formatted date in Indonesian format
+ * @param date - Date to format
+ * @returns Formatted date in Indonesian format
  *
  * @example
  * formatIndonesianDate('2024-02-16') // '16 Februari 2024'
  */
-export const formatIndonesianDate = (date: Date | string): string;
+export function formatIndonesianDate(date: Date | string): string;
 ```
 
 ---
@@ -419,69 +514,85 @@ export const formatIndonesianDate = (date: Date | string): string;
 
 ### Backend
 
-- Validate all user inputs
+- Validate all user inputs (Form Requests)
 - Use parameterized queries (Eloquent)
 - Escape all outputs
-- Use CSRF protection for forms
-- Use Laravel's built-in security features
-- Never trust user input
+- Use CSRF protection (Inertia handles this automatically)
+- Use Laravel Fortify for authentication
+- Hash passwords with bcrypt (12 rounds)
 - Use HTTPS for all communications
-- Hash passwords with bcrypt
-- Use Laravel Sanctum for API authentication
+- Never trust user input
 
 ### Frontend
 
-- Never trust user input
-- Sanitize all outputs
-- Use React's built-in XSS protection
-- Validate forms on both client and server
-- Store tokens securely (httpOnly cookies)
+- TypeScript types untuk type safety
+- React's built-in XSS protection (JSX escaping)
+- Validate forms on both client dan server
+- Use Inertia CSRF token (automatic)
 - Implement proper error boundaries
 - Use Content Security Policy (CSP) headers
 
 ---
 
-## Performance Best Practices
+## Testing Standards
 
-### Backend
+### Backend (Pest v4)
 
-- Use database indexes
-- Optimize queries (avoid N+1 problems)
-- Use caching (Redis, Laravel cache)
-- Use pagination for large datasets
-- Queue heavy operations (jobs, notifications)
-- Monitor slow queries
+```php
+<?php
+
+use App\Models\User;
+use App\Models\Presensi;
+
+it('creates a presensi record', function () {
+    $user = User::factory()->create(['role' => 'guru']);
+
+    $response = $this->actingAs($user)
+        ->post('/presensi', [
+            'siswa_id' => 1,
+            'jadwal_id' => 1,
+            'status' => 'hadir',
+            'tanggal' => now()->toDateString(),
+        ]);
+
+    $response->assertRedirect();
+    expect(Presensi::count())->toBe(1);
+});
+
+it('requires authentication to access presensi', function () {
+    $response = $this->get('/presensi');
+
+    $response->assertRedirect('/login');
+});
+```
+
+**Running tests:**
+```bash
+# Run semua tests
+composer test                    # lint + pest
+
+# Run Pest only
+./vendor/bin/pest
+
+# Run specific test file
+./vendor/bin/pest tests/Feature/PresensiTest.php
+
+# Run with coverage
+./vendor/bin/pest --coverage
+```
 
 ### Frontend
 
-- Use React.memo for expensive components
-- Use useCallback and useMemo
-- Lazy load components
-- Optimize images (compress, lazy load)
-- Debounce user input
-- Code splitting for large bundles
+```bash
+# Type checking
+npm run types
 
----
+# Lint check
+npm run lint
 
-## Testing Best Practices
-
-### Backend
-
-- Write unit tests for all critical components
-- Use RefreshDatabase trait for database tests
-- Mock external dependencies
-- Test both success and failure scenarios
-- Use descriptive test names
-- Follow AAA pattern (Arrange, Act, Assert)
-
-### Frontend
-
-- Test user behavior, not implementation details
-- Mock API calls with MSW
-- Test accessibility (a11y)
-- Test loading and error states
-- Test keyboard navigation
-- Keep tests focused and maintainable
+# Format check
+npm run format:check
+```
 
 ---
 

@@ -157,6 +157,11 @@
 | Siti Aminah | Orang Tua | Sedang | Monitor anak, request izin, terima notifikasi |
 | Admin Sekolah | Super Admin | Tinggi | Manage sistem, users, settings, laporan |
 
+> **Catatan Teknis:** Setiap role di atas memiliki tabel profil terpisah di database
+> (`siswa`, `guru`, `orang_tua`) yang menyimpan data spesifik per-role (NIS, NIP, telepon, dll.).
+> Tabel `users` hanya menyimpan data autentikasi (email, password, role).
+> Lihat [Data Model](../DEV/0404-data-model.md) untuk detail skema dan relasi.
+
 ---
 
 ## Dokumentasi Terkait

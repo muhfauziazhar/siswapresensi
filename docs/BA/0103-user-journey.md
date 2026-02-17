@@ -213,6 +213,63 @@
 
 ---
 
+## Journey 3A: Siswa Gunakan QR Code Umum (Fallback)
+
+> **Skenario:** QR code per-jadwal gagal di-generate, expired, atau siswa tidak sempat generate.
+> Siswa dapat menggunakan QR Code Umum yang selalu tersedia di profil mereka.
+
+### Step 1: Login ke Sistem
+**User Action:** Siswa membuka website dan login dengan NIS/password.
+
+**System Response:** Sistem mengarahkan siswa ke dashboard.
+
+**Touch Points:** Halaman login
+
+---
+
+### Step 2: Buka Profil / QR Code Umum
+**User Action:** Siswa membuka halaman profil atau klik ikon QR Code di navbar.
+
+**System Response:** Sistem menampilkan QR Code Umum siswa yang selalu aktif (tidak expire).
+
+**Touch Points:** Halaman profil / QR Code
+
+**Pain Points:**
+- QR code tidak muncul (error sistem)
+
+---
+
+### Step 3: Tampilkan QR Code ke Guru
+**User Action:** Siswa menunjukkan QR Code Umum di layar ke guru.
+
+**System Response:** QR Code ditampilkan dalam ukuran besar untuk memudahkan scanning.
+
+**Touch Points:** Halaman QR Code
+
+---
+
+### Step 4: Guru Scan QR Code Umum
+**User Action:** Guru memindai QR Code Umum siswa.
+
+**System Response:** Sistem mendeteksi bahwa ini QR Code Umum (bukan per-jadwal). Sistem mencocokkan dengan jadwal aktif guru saat ini.
+
+**Touch Points:** Kamera guru
+
+**Pain Points:**
+- Guru tidak memiliki jadwal aktif saat ini (error: "Tidak ada jadwal aktif")
+- Siswa bukan anggota kelas yang sesuai jadwal guru
+
+---
+
+### Step 5: Konfirmasi Presensi
+**User Action:** Sistem menampilkan konfirmasi: nama siswa, kelas, dan jadwal yang terdeteksi.
+
+**System Response:** Guru mengkonfirmasi. Presensi ter-record sebagai "Hadir" dengan tipe QR "general". Notifikasi dikirim ke orang tua.
+
+**Touch Points:** Halaman presensi
+
+---
+
 ## Journey 4: Orang Tua Request Izin/Sakit
 
 ### Step 1: Login ke Sistem
@@ -365,7 +422,8 @@
 |---------|-------------|------------|-------------------|
 | Guru Input Presensi (Scan QR) | 6 | Guru | Website, Kamera |
 | Guru Input Presensi (Reverse Marking) | 6 | Guru | Website |
-| Siswa Generate QR Code | 6 | Siswa | Website, Browser |
+| Siswa Generate QR Code (Per-Jadwal) | 6 | Siswa | Website, Browser |
+| Siswa Gunakan QR Code Umum (Fallback) | 5 | Siswa | Website, Profil |
 | Orang Tua Request Izin/Sakit | 8 | Orang Tua | Website, Email |
 | Super Admin Manage Users | 6 | Admin | Website |
 

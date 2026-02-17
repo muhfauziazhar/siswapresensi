@@ -42,17 +42,17 @@
 ## Technical
 
 **Tech Stack (Fixed):**
-- **Backend:** Laravel 10/11
-- **Frontend:** React dengan Inertia.js adapter
-- **Database:** MySQL atau PostgreSQL
-- **Styling:** Tailwind CSS
-- **State Management:** React Context atau Zustand
+- **Backend:** Laravel 12 (PHP 8.2+)
+- **Frontend:** React 19 (TypeScript) dengan Inertia.js v2
+- **Database:** PostgreSQL 14+
+- **Styling:** Tailwind CSS 4.0
+- **State Management:** Inertia.js shared data + React hooks
 
 **Security Requirements:**
-- **Authentication:** JWT atau Laravel Sanctum
+- **Authentication:** Laravel Fortify (session-based + 2FA)
 - **Authorization:** Role-based access control (RBAC)
 - **Data Encryption:** SSL/TLS untuk data in transit
-- **Input Validation:** Server-side dan client-side validation
+- **Input Validation:** Server-side (Form Requests) dan client-side (TypeScript)
 
 ---
 

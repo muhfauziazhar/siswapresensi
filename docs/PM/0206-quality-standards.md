@@ -145,11 +145,11 @@
 
 ### Authentication
 
-- **Standard:** JWT atau Laravel Sanctum
+- **Standard:** Laravel Fortify (session-based + 2FA)
 - **Requirements:**
-  - Secure token storage (httpOnly cookies atau secure localStorage)
-  - Token expiration dan refresh
-  - Multi-factor authentication (opsional, untuk future)
+  - Secure session storage (database driver)
+  - Session lifetime: 2 jam (SESSION_LIFETIME=120)
+  - Two-Factor Authentication (TOTP) didukung
 
 **Enforcement:**
 - Security tests

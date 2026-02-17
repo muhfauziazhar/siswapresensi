@@ -82,7 +82,7 @@
 - Laravel application development
 - Database design & migrations
 - API development (REST)
-- Authentication & authorization (Laravel Sanctum)
+- Authentication & authorization (Laravel Fortify)
 - QR code generation
 - Business logic implementation
 - Unit & integration testing
@@ -90,13 +90,13 @@
 **Capacity:** 40 hours/week (Full-time)
 
 **Skills Required:**
-- Laravel 10/11
-- PHP 8.1+
-- MySQL/PostgreSQL
+- Laravel 12
+- PHP 8.2+
+- PostgreSQL
 - REST API design
-- Authentication (JWT, Sanctum)
+- Authentication (Laravel Fortify)
 - QR code generation
-- Testing (PHPUnit, Pest)
+- Testing (Pest)
 
 **Tools:**
 - PHPStorm / VS Code

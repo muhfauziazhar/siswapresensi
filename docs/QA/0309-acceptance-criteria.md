@@ -61,10 +61,10 @@ Agar saya dapat mengakses fitur sesuai role saya.
 | AC-006 | Pengguna sudah login | Pengguna mengklik tombol logout | Pengguna berhasil logout dan diarahkan ke halaman login | P1 |
 
 **Definition of Done:**
-- [ ] Login endpoint berfungsi dengan benar
-- [ ] Password di-hash dengan bcrypt
-- [ ] Token JWT dibuat dan valid
-- [ ] Session timeout dikonfigurasi (2 jam)
+- [ ] Login endpoint berfungsi dengan benar (Laravel Fortify)
+- [ ] Password di-hash dengan bcrypt (12 rounds)
+- [ ] Session Fortify dibuat dan valid (session-based, bukan JWT)
+- [ ] Session timeout dikonfigurasi (2 jam, SESSION_LIFETIME=120)
 - [ ] Rate limiting untuk login (5 percobaan per 15 menit)
 - [ ] Unit tests untuk login
 - [ ] Integration tests untuk login

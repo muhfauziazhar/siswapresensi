@@ -183,7 +183,7 @@
 
 #### Authentication System
 - **Required by:** All admin features, User management
-- **Dependencies:** Laravel Sanctum
+- **Dependencies:** Laravel Fortify
 - **Timeline:** Feb 2026
 - **Status:** Pending
 
@@ -303,7 +303,7 @@ Manajemen Sekolah (Kelas, Mapel, Jadwal)
 
 3. **Authentication System** - Security vulnerabilities
    - **Risk:** Security vulnerabilities
-   - **Mitigation:** Use Laravel Sanctum, follow security best practices
+   - **Mitigation:** Use Laravel Fortify, follow security best practices
 
 ### Medium-Risk Dependencies
 

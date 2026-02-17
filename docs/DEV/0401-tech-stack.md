@@ -1,74 +1,122 @@
 # Tech Stack - SiswaPresensi
 
+> **Sumber kebenaran (source of truth)** untuk semua teknologi dan dependensi yang digunakan.
+> Versi yang tercantum di sini sesuai dengan `composer.json` dan `package.json` pada project `siswapresensi-app`.
+
+---
+
 ## Backend
 
 ### Framework
-- **Laravel:** 10/11 (Latest LTS)
-- **PHP:** 8.1+ (Required for Laravel 10/11)
+- **Laravel:** 12 (latest)
+- **PHP:** 8.2+
 
 ### Database
-- **Primary:** MySQL 8.0+ atau PostgreSQL 14+
-- **ODM:** Eloquent ORM (Laravel built-in)
+- **Primary:** PostgreSQL 14+
+- **ORM:** Eloquent ORM (Laravel built-in)
 
 ### Authentication & Authorization
-- **Package:** Laravel Sanctum
-- **Type:** Token-based authentication (SPA)
-- **Features:** JWT tokens, token refresh, middleware
+- **Package:** Laravel Fortify
+- **Type:** Session-based authentication (web guard)
+- **Features:**
+  - User registration
+  - Password reset
+  - Email verification
+  - Two-Factor Authentication (2FA) dengan TOTP
+  - Rate limiting (5 percobaan per IP)
+- **Catatan:** Fortify menangani backend logic; frontend (React + Inertia) menyediakan UI sendiri
 
-### API
-- **Type:** RESTful API
-- **Documentation:** OpenAPI/Swagger
-- **Tools:** Postman, Insomnia
+### Routing
+- **Package:** Laravel Wayfinder (`laravel/wayfinder ^0.1.9`)
+- **Purpose:** Type-safe route generation untuk React frontend
 
 ### QR Code Generation
-- **Package:** `simplesoftwareio/simple-qrcode` (Laravel)
-- **Purpose:** Generate QR codes for student attendance
+- **Package:** `simplesoftwareio/simple-qrcode` (akan ditambahkan)
+- **Purpose:** Generate QR codes untuk presensi siswa
 
 ### Notifications
-- **Service:** Firebase Cloud Messaging (FCM)
+- **Service:** Firebase Cloud Messaging (FCM) (akan ditambahkan)
 - **Type:** Web Push notifications
-- **Purpose:** Real-time notifications to parents and students
+- **Purpose:** Real-time notifications ke orang tua dan siswa
 
 ---
 
 ## Frontend
 
-### Framework
-- **React:** 18+ (Latest stable)
-- **Inertia.js:** Latest stable
-- **Purpose:** SPA without build step
+### Framework & Language
+- **React:** 19
+- **TypeScript:** 5.7+ (mandatory, semua file `.tsx`)
+- **Inertia.js:** 2.x (`@inertiajs/react ^2.3.7`)
+- **Purpose:** SPA experience dengan server-side routing (no API layer needed untuk UI)
 
-### State Management
-- **Primary:** React Context API
-- **Alternative:** Zustand (optional, for complex state)
+### Build Tool
+- **Vite:** 7 (`laravel-vite-plugin ^2.0`)
+- **React Plugin:** `@vitejs/plugin-react ^5.0` + React Compiler (`babel-plugin-react-compiler`)
+- **Wayfinder Plugin:** `@laravel/vite-plugin-wayfinder ^0.1.3`
+- **SSR:** Didukung via `resources/js/ssr.tsx`
 
 ### Styling
-- **Framework:** Tailwind CSS 3.x
-- **Purpose:** Utility-first CSS framework
-- **Components:** Tailwind UI (optional, for pre-built components)
+- **Framework:** Tailwind CSS 4.0 (`@tailwindcss/vite ^4.1`)
+- **Animation:** `tw-animate-css ^1.4`
+- **Utilities:** `clsx`, `tailwind-merge`, `class-variance-authority` (CVA)
+
+### UI Components
+- **System:** shadcn/ui pattern (Radix UI primitives + Tailwind styling)
+- **Primitives (Radix UI):**
+  - `@radix-ui/react-avatar`
+  - `@radix-ui/react-checkbox`
+  - `@radix-ui/react-collapsible`
+  - `@radix-ui/react-dialog`
+  - `@radix-ui/react-dropdown-menu`
+  - `@radix-ui/react-label`
+  - `@radix-ui/react-navigation-menu`
+  - `@radix-ui/react-select`
+  - `@radix-ui/react-separator`
+  - `@radix-ui/react-slot`
+  - `@radix-ui/react-toggle` / `toggle-group`
+  - `@radix-ui/react-tooltip`
+- **Headless UI:** `@headlessui/react ^2.2` (additional headless components)
+- **Icons:** `lucide-react ^0.475`
+- **OTP Input:** `input-otp ^1.4` (untuk 2FA)
+
+### State Management
+- **Primary:** Inertia.js shared data (server-driven props)
+- **Local:** React hooks (`useState`, `useReducer`)
+- **Catatan:** Tidak menggunakan external state library (Zustand, Redux, dll.)
 
 ### QR Code Scanning
-- **Package:** `react-qr-reader` atau browser native
-- **Purpose:** Scan QR codes on teacher device
+- **Package:** `react-qr-reader` atau browser native (akan ditambahkan)
+- **Purpose:** Scan QR codes pada device guru
 
 ---
 
 ## Development Tools
 
 ### Backend
-- **IDE:** PHPStorm atau VS Code
 - **Package Manager:** Composer
-- **Testing:** PHPUnit / Pest
-- **Linting:** PHP CS Fixer
-- **Type Checking:** PHPStan atau Psalm
+- **Testing:** Pest v4 (`pestphp/pest ^4.3`, `pestphp/pest-plugin-laravel ^4.0`)
+- **Linting:** Laravel Pint (`laravel/pint ^1.24`) — PSR-12 + Laravel preset
+- **Debugging:** Laravel Pail (`laravel/pail ^1.2`) — real-time log viewer
+- **Local Dev:** Laravel Sail (`laravel/sail ^1.41`) — Docker environment
+- **AI Tooling:** Laravel Boost (`laravel/boost ^2.0`)
+- **REPL:** Laravel Tinker (`laravel/tinker ^2.10`)
+- **Mocking:** Mockery (`mockery/mockery ^1.6`)
+- **Error Handler:** Collision (`nunomaduro/collision ^8.6`)
 
 ### Frontend
-- **IDE:** VS Code
-- **Package Manager:** npm atau pnpm
-- **Testing:** Jest / Vitest
-- **Linting:** ESLint
-- **Formatting:** Prettier
-- **Type Checking:** TypeScript (optional, recommended)
+- **Package Manager:** npm
+- **Linting:** ESLint 9 (flat config) + plugins:
+  - `eslint-plugin-react` — React rules
+  - `eslint-plugin-react-hooks` — Hooks rules
+  - `eslint-plugin-import` — Import ordering
+  - `typescript-eslint` — TypeScript rules
+  - `eslint-config-prettier` — Disable conflicting rules
+- **Formatting:** Prettier 3.4+ dengan `prettier-plugin-tailwindcss`
+- **Type Checking:** TypeScript (`tsc --noEmit`)
+
+### IDE
+- **Primary:** VS Code
+- **Config:** `.vscode/` settings included, EditorConfig (`.editorconfig`)
 
 ---
 
@@ -77,10 +125,10 @@
 ### Version Control
 - **Git:** Git
 - **Hosting:** GitHub
-- **CI/CD:** GitHub Actions
+- **CI/CD:** GitHub Actions (`.github/workflows/tests.yml`)
 
 ### Hosting
-- **Development:** Local (Laravel Sail)
+- **Development:** Local (`composer run dev` — menjalankan server, queue, logs, vite secara concurrent)
 - **Staging:** DigitalOcean VPS atau Laravel Forge
 - **Production:** DigitalOcean VPS atau Laravel Forge
 
@@ -90,7 +138,7 @@
 
 ### SSL/TLS
 - **Provider:** Let's Encrypt
-- **Purpose:** HTTPS required for production
+- **Purpose:** HTTPS required untuk production
 
 ---
 
@@ -98,33 +146,33 @@
 
 ### Error Tracking
 - **Service:** Sentry
-- **Purpose:** Error tracking and performance monitoring
+- **Purpose:** Error tracking dan performance monitoring
 
 ### Application Monitoring
-- **Service:** Laravel Telescope
-- **Purpose:** Debugging and monitoring Laravel
+- **Service:** Laravel Telescope (development)
+- **Purpose:** Debugging dan monitoring Laravel requests, queries, jobs
 
 ### Uptime Monitoring
 - **Service:** UptimeRobot
-- **Purpose:** Monitor application uptime and availability
+- **Purpose:** Monitor application uptime dan availability
 
 ---
 
 ## Testing Tools
 
 ### Backend Testing
-- **Unit Testing:** PHPUnit / Pest
-- **Integration Testing:** PHPUnit / Pest
+- **Unit & Feature Testing:** Pest v4
+- **Database Testing:** SQLite in-memory (`:memory:`) via `phpunit.xml`
 - **API Testing:** Postman / Insomnia
 
 ### Frontend Testing
-- **Unit Testing:** Jest / Vitest
-- **Component Testing:** React Testing Library
-- **E2E Testing:** Playwright / Cypress
+- **Linting:** ESLint + Prettier (build-time quality)
+- **Type Checking:** TypeScript (`npm run types`)
+- **E2E Testing:** Playwright (akan ditambahkan)
 - **Performance Testing:** k6 / Artillery
 
 ### Security Testing
-- **Tools:** OWASP ZAP, Burp Suite, Semgrep, CodeQL
+- **Tools:** OWASP ZAP, Semgrep, CodeQL
 
 ### Accessibility Testing
 - **Tools:** axe DevTools, Lighthouse, WAVE
@@ -134,14 +182,12 @@
 ## Third-Party Services
 
 ### Firebase
-- **Purpose:** Web Push notifications
+- **Purpose:** Web Push notifications (akan ditambahkan)
 - **Services:** Cloud Messaging (FCM)
-- **Documentation:** https://firebase.google.com/docs/cloud-messaging
 
 ### Google Maps API
 - **Purpose:** Geofencing (optional)
 - **Services:** Geocoding API
-- **Documentation:** https://developers.google.com/maps
 
 ---
 
@@ -154,7 +200,7 @@
 - **Edge:** Latest stable
 
 ### Mobile Browsers
-- **iOS Safari:** iOS 12+
+- **iOS Safari:** iOS 14+
 - **Chrome Mobile:** Latest stable
 - **Samsung Internet:** Latest stable
 
@@ -164,18 +210,23 @@
 
 | Category | Technology | Version | Purpose |
 |----------|------------|---------|---------|
-| Backend Framework | Laravel | 10/11 | Application framework |
-| PHP | PHP | 8.1+ | Backend language |
-| Database | MySQL/PostgreSQL | 8.0+/14+ | Data storage |
-| Authentication | Laravel Sanctum | Latest | Token-based auth |
-| Frontend Framework | React | 18+ | UI framework |
-| Inertia.js | Inertia.js | Latest | SPA without build |
-| Styling | Tailwind CSS | 3.x | CSS framework |
-| State Management | React Context | - | State management |
-| CI/CD | GitHub Actions | - | Automation |
-| Hosting | DigitalOcean VPS | - | Production hosting |
-| Error Tracking | Sentry | - | Error monitoring |
-| Notifications | Firebase | - | Web Push |
+| Backend Framework | Laravel | 12 | Application framework |
+| PHP | PHP | 8.2+ | Backend language |
+| Database | PostgreSQL | 14+ | Data storage |
+| Authentication | Laravel Fortify | ^1.30 | Session-based auth + 2FA |
+| Frontend Framework | React | 19 | UI framework |
+| Language | TypeScript | 5.7+ | Type-safe frontend |
+| SPA Bridge | Inertia.js | 2.x | Server-driven SPA |
+| Styling | Tailwind CSS | 4.0 | CSS framework |
+| UI Components | Radix UI / shadcn | Latest | Accessible primitives |
+| Build Tool | Vite | 7 | Frontend bundler |
+| Testing | Pest | 4.x | Backend testing |
+| Linting (PHP) | Laravel Pint | ^1.24 | Code formatting |
+| Linting (JS) | ESLint + Prettier | 9 / 3.4 | Frontend quality |
+| CI/CD | GitHub Actions | — | Automation |
+| Hosting | DigitalOcean VPS | — | Production hosting |
+| Error Tracking | Sentry | — | Error monitoring |
+| Notifications | Firebase | — | Web Push (planned) |
 
 ---
 

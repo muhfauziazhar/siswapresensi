@@ -57,7 +57,7 @@
 - [ ] Project repository structure
 - [ ] Laravel + Inertia.js setup
 - [ ] Database setup & migrations
-- [ ] Authentication system (Laravel Sanctum)
+- [ ] Authentication system (Laravel Fortify)
 - [ ] Basic API structure
 - [ ] UI component library (Tailwind CSS)
 - [ ] Development environment setup

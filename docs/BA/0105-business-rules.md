@@ -65,7 +65,7 @@
 
 ---
 
-## Rule 4: QR Code Generation
+## Rule 4: QR Code Generation (Per-Jadwal)
 
 **Description:** Siswa dapat generate QR code unik untuk jadwal tertentu.
 
@@ -83,6 +83,48 @@
 - Hasil: QR code expired, tidak valid.
 
 **Exception:** QR code expired tidak valid. QR code untuk jadwal berbeda tidak valid.
+
+---
+
+## Rule 4A: QR Code Umum (General / Fallback)
+
+**Description:** Setiap siswa memiliki QR Code Umum di profil yang berfungsi sebagai fallback.
+
+**Logic:**
+- QR Code Umum berisi: `qr_code_token` (UUID permanen) dari tabel siswa.
+- QR Code Umum **tidak expire** — selalu aktif selama siswa berstatus aktif.
+- QR Code Umum **tidak terikat jadwal tertentu** — guru yang menentukan jadwal saat scan.
+- Saat guru scan QR Code Umum, sistem mencari jadwal aktif guru pada waktu tersebut.
+- Jika guru memiliki jadwal aktif, presensi otomatis ter-record dengan `qr_type: 'general'`.
+- Jika guru tidak memiliki jadwal aktif, sistem menolak scan.
+
+**Kapan Digunakan:**
+- QR code per-jadwal gagal di-generate (error jaringan, dll.)
+- QR code per-jadwal sudah expired
+- Siswa tidak sempat generate QR per-jadwal
+- Proses presensi perlu dipercepat
+
+**Example:**
+- Siswa Ahmad Rizky membuka profil dan menunjukkan QR Code Umum.
+- Guru Budi Santoso scan QR Code Umum jam 08:15.
+- Guru saat ini memiliki jadwal aktif: "Matematika XI IPA 1" (08:00-09:30).
+- Sistem mencocokkan: Ahmad Rizky adalah anggota kelas XI IPA 1 ✅.
+- Presensi ter-record sebagai "Hadir" (qr_type: general).
+
+**Exception:**
+- Guru tidak memiliki jadwal aktif → scan ditolak.
+- Siswa bukan anggota kelas pada jadwal aktif guru → scan ditolak.
+- Siswa berstatus non-aktif → QR Code Umum tidak valid.
+
+**Perbandingan:**
+
+| Aspek | QR Per-Jadwal | QR Umum (Fallback) |
+|-------|---------------|--------------------|
+| Isi | siswa_id + jadwal_id + timestamp | qr_code_token (UUID) |
+| Expiry | 2 jam | Tidak expire |
+| Terikat jadwal | Ya (spesifik) | Tidak (guru menentukan) |
+| Kapan digunakan | Normal / default | Fallback |
+| Tracking di presensi | qr_type: 'jadwal' | qr_type: 'general' |
 
 ---
 
@@ -251,7 +293,8 @@
 | Manajemen User & Role | Manajemen User | High |
 | Manajemen Kelas & Mapel | Manajemen Akademik | High |
 | Manajemen Jadwal | Manajemen Akademik | High |
-| QR Code Generation | Presensi | High |
+| QR Code Generation (Per-Jadwal) | Presensi | High |
+| QR Code Umum (Fallback) | Presensi | High |
 | QR Code Validation | Presensi | High |
 | Reverse Marking | Presensi | High |
 | Request Izin/Sakit | Presensi | High |

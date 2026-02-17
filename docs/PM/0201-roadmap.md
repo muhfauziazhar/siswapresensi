@@ -48,7 +48,7 @@
 **Key Activities:**
 - [ ] Project initialization (Laravel + Inertia.js)
 - [ ] Database setup & migrations
-- [ ] Authentication system (Laravel Sanctum)
+- [ ] Authentication system (Laravel Fortify)
 - [ ] Basic UI component library (Tailwind CSS)
 - [ ] Development environment setup
 - [ ] CI/CD pipeline setup
