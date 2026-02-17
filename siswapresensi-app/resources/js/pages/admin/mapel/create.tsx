@@ -21,6 +21,7 @@ export default function MapelCreate() {
         nama: '',
         kode: '',
         status: 'aktif' as 'aktif' | 'non_aktif',
+        color: '#3b82f6',
     });
 
     const submit: FormEventHandler = (e) => {
@@ -63,6 +64,26 @@ export default function MapelCreate() {
                                     placeholder="Masukkan kode mata pelajaran"
                                 />
                                 <InputError message={errors.kode} />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="color">Warna Label (untuk Jadwal)</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="color"
+                                        type="color"
+                                        value={data.color}
+                                        onChange={(e) => setData('color', e.target.value)}
+                                        className="w-12 h-10 p-1 cursor-pointer"
+                                    />
+                                    <Input
+                                        value={data.color}
+                                        onChange={(e) => setData('color', e.target.value)}
+                                        placeholder="#3b82f6"
+                                        className="flex-1"
+                                    />
+                                </div>
+                                <InputError message={errors.color} />
                             </div>
 
                             <div className="space-y-2">

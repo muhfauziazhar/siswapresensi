@@ -17,8 +17,16 @@ class KelasController extends Controller
      */
     public function index(): Response
     {
+        $query = Kelas::query()->latest();
+
+        if (request('search')) {
+            $query->where('nama', 'like', '%' . request('search') . '%')
+                  ->orWhere('tingkat', 'like', '%' . request('search') . '%');
+        }
+
         return Inertia::render('admin/kelas/index', [
-            'kelas' => Kelas::query()->latest()->paginate(15),
+            'kelas' => $query->paginate(15)->withQueryString(),
+            'filters' => request()->only(['search']),
         ]);
     }
 

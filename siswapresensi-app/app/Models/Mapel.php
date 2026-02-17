@@ -16,6 +16,7 @@ class Mapel extends Model
         'nama',
         'kode',
         'status',
+        'color',
     ];
 
     // Relationships

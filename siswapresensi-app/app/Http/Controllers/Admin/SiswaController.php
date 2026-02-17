@@ -22,8 +22,24 @@ class SiswaController extends Controller
      */
     public function index(): Response
     {
+        $query = Siswa::query()->with(['kelas', 'orangTua'])->latest();
+
+        if (request('search')) {
+            $query->where(function ($q) {
+                $q->where('nama_depan', 'like', '%' . request('search') . '%')
+                  ->orWhere('nama_belakang', 'like', '%' . request('search') . '%')
+                  ->orWhere('nis', 'like', '%' . request('search') . '%');
+            });
+        }
+
+        if (request('kelas_id') && request('kelas_id') !== 'all') {
+            $query->where('kelas_id', request('kelas_id'));
+        }
+
         return Inertia::render('admin/siswa/index', [
-            'siswa' => Siswa::query()->with(['kelas', 'orangTua'])->latest()->paginate(15),
+            'siswa' => $query->paginate(15)->withQueryString(),
+            'kelasList' => Kelas::query()->aktif()->orderBy('nama')->get(),
+            'filters' => request()->only(['search', 'kelas_id']),
         ]);
     }
 

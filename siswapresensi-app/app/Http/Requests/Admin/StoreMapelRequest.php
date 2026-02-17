@@ -26,6 +26,7 @@ class StoreMapelRequest extends FormRequest
             'nama' => ['required', 'string', 'max:100'],
             'kode' => ['required', 'string', 'max:10', 'unique:mapel,kode'],
             'status' => ['required', 'in:aktif,non_aktif'],
+            'color' => ['nullable', 'string', 'max:7', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
         ];
     }
 

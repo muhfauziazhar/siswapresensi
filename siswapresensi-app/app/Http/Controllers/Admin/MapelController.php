@@ -17,8 +17,16 @@ class MapelController extends Controller
      */
     public function index(): Response
     {
+        $query = Mapel::query()->latest();
+
+        if (request('search')) {
+            $query->where('nama', 'like', '%' . request('search') . '%')
+                  ->orWhere('kode', 'like', '%' . request('search') . '%');
+        }
+
         return Inertia::render('admin/mapel/index', [
-            'mapel' => Mapel::query()->latest()->paginate(15),
+            'mapel' => $query->paginate(15)->withQueryString(),
+            'filters' => request()->only(['search']),
         ]);
     }
 

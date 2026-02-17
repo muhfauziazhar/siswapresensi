@@ -13,6 +13,7 @@ export type Mapel = {
     nama: string;
     kode: string;
     status: 'aktif' | 'non_aktif';
+    color?: string;
     created_at: string;
     updated_at: string;
 };
@@ -24,6 +25,7 @@ export type Guru = {
     nama: string;
     user?: import('./auth').User;
     jadwal?: Jadwal[];
+    status: 'aktif' | 'non_aktif';
     created_at: string;
     updated_at: string;
 };

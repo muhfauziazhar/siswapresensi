@@ -54,6 +54,11 @@ export default function JadwalEdit({ jadwal, kelasList, mapelList, guruList }: P
                         <CardTitle>Form Edit Jadwal</CardTitle>
                     </CardHeader>
                     <CardContent>
+                        {(errors as any).conflict && (
+                            <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+                                <span className="font-bold">Error:</span> {(errors as any).conflict}
+                            </div>
+                        )}
                         <form onSubmit={submit} className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="kelas_id">Kelas</Label>

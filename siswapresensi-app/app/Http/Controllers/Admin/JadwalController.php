@@ -20,8 +20,29 @@ class JadwalController extends Controller
      */
     public function index(): Response
     {
+        $query = Jadwal::query()->with(['kelas', 'mapel', 'guru']);
+
+        if (request()->has('kelas_id') && request()->kelas_id && request()->kelas_id !== 'all') {
+            $query->where('kelas_id', request()->kelas_id);
+        }
+
+        if (request()->has('guru_id') && request()->guru_id && request()->guru_id !== 'all') {
+            $query->where('guru_id', request()->guru_id);
+        }
+
+        if (request()->has('hari') && request()->hari && request()->hari !== 'all') {
+            $query->where('hari', request()->hari);
+        }
+
+        $jadwalData = request()->get('view_mode') === 'calendar' 
+            ? $query->get() 
+            : $query->latest()->paginate(15)->withQueryString();
+
         return Inertia::render('admin/jadwal/index', [
-            'jadwal' => Jadwal::query()->with(['kelas', 'mapel', 'guru'])->latest()->paginate(15),
+            'jadwal' => $jadwalData,
+            'kelasList' => Kelas::query()->aktif()->orderBy('nama')->get(),
+            'guruList' => Guru::query()->orderBy('nama')->get(),
+            'filters' => request()->only(['kelas_id', 'guru_id', 'hari', 'view_mode']),
         ]);
     }
 

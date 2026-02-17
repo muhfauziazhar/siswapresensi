@@ -20,8 +20,16 @@ class GuruController extends Controller
      */
     public function index(): Response
     {
+        $query = Guru::query()->with('user')->latest();
+
+        if (request('search')) {
+            $query->where('nama', 'like', '%' . request('search') . '%')
+                  ->orWhere('nip', 'like', '%' . request('search') . '%');
+        }
+
         return Inertia::render('admin/guru/index', [
-            'guru' => Guru::query()->with('user')->latest()->paginate(15),
+            'guru' => $query->paginate(15)->withQueryString(),
+            'filters' => request()->only(['search']),
         ]);
     }
 

@@ -39,61 +39,55 @@ export default function OrangTuaIndex({ orangTua }: Props) {
                     </Button>
                 </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Daftar Orang Tua</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b text-left">
-                                        <th className="px-4 py-3 font-medium">Nama</th>
-                                        <th className="px-4 py-3 font-medium">Telepon</th>
-                                        <th className="px-4 py-3 font-medium">Email</th>
-                                        <th className="px-4 py-3 font-medium">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {orangTua.data.length === 0 && (
-                                        <tr>
-                                            <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                                                Belum ada data orang tua.
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {orangTua.data.map((item) => (
-                                        <tr key={item.id} className="border-b">
-                                            <td className="px-4 py-3">{item.nama}</td>
-                                            <td className="px-4 py-3">{item.telepon}</td>
-                                            <td className="px-4 py-3">{item.user?.email}</td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    <Button variant="outline" size="sm" asChild>
-                                                        <Link href={`/admin/orang-tua/${item.id}/edit`}>
-                                                            <Pencil className="mr-1 h-4 w-4" />
-                                                            Edit
-                                                        </Link>
-                                                    </Button>
-                                                    <Button
-                                                        variant="destructive"
-                                                        size="sm"
-                                                        onClick={() => handleDelete(item.id)}
-                                                    >
-                                                        <Trash2 className="mr-1 h-4 w-4" />
-                                                        Hapus
-                                                    </Button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                <div className="rounded-md border bg-card text-card-foreground shadow-sm">
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="border-b bg-muted/50 text-left transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                                <th className="h-12 px-4 align-middle font-medium text-muted-foreground">Nama</th>
+                                <th className="h-12 px-4 align-middle font-medium text-muted-foreground">Telepon</th>
+                                <th className="h-12 px-4 align-middle font-medium text-muted-foreground">Email</th>
+                                <th className="h-12 px-4 align-middle font-medium text-muted-foreground">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {orangTua.data.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="p-4 text-center text-muted-foreground">
+                                        Belum ada data orang tua.
+                                    </td>
+                                </tr>
+                            )}
+                            {orangTua.data.map((item) => (
+                                <tr key={item.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                                    <td className="p-4 align-middle">{item.nama}</td>
+                                    <td className="p-4 align-middle">{item.telepon}</td>
+                                    <td className="p-4 align-middle">{item.user?.email}</td>
+                                    <td className="p-4 align-middle">
+                                        <div className="flex items-center gap-2">
+                                            <Button variant="ghost" size="icon" asChild>
+                                                <Link href={`/admin/orang-tua/${item.id}/edit`}>
+                                                    <Pencil className="h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                variant="ghost" 
+                                                size="icon"
+                                                className="text-destructive hover:text-destructive"
+                                                onClick={() => handleDelete(item.id)}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
 
-                        <Pagination links={orangTua.links} />
-                    </CardContent>
-                </Card>
+                <div className="mt-4">
+                    <Pagination links={orangTua.links} />
+                </div>
             </div>
         </AppLayout>
     );
