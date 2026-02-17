@@ -29,7 +29,7 @@ class IzinController extends Controller
             ->paginate(15);
 
         return Inertia::render('guru/izin/index', [
-            'izin' => $izin,
+            'izinList' => $izin,
         ]);
     }
 

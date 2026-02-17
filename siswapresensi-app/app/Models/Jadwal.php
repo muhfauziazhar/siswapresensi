@@ -65,6 +65,18 @@ class Jadwal extends Model
 
     public function scopeHariIni($query)
     {
-        return $query->where('hari', strtolower(now()->englishDayOfWeek));
+        $days = [
+            'sunday' => 'minggu',
+            'monday' => 'senin',
+            'tuesday' => 'selasa',
+            'wednesday' => 'rabu',
+            'thursday' => 'kamis',
+            'friday' => 'jumat',
+            'saturday' => 'sabtu',
+        ];
+
+        $today = strtolower(now()->englishDayOfWeek);
+        
+        return $query->where('hari', $days[$today] ?? $today);
     }
 }

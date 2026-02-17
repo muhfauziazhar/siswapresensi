@@ -75,6 +75,7 @@ export type Jadwal = {
     guru?: Guru;
     created_at: string;
     updated_at: string;
+    presensi_count?: number;
 };
 
 export type PresensiStatus = 'hadir' | 'izin' | 'sakit' | 'alpha';

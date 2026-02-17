@@ -66,6 +66,9 @@ class DashboardController extends Controller
             ->where('guru_id', $guru->id)
             ->aktif()
             ->hariIni()
+            ->withCount(['presensi' => function ($query) {
+                $query->where('tanggal', now()->toDateString());
+            }])
             ->orderBy('waktu_mulai')
             ->get();
 

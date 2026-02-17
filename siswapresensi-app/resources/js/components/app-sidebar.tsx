@@ -51,15 +51,12 @@ function getNavItems(role: UserRole): NavItem[] {
             ];
         case 'guru':
             return [
-                ...common,
-                { title: 'Presensi', href: '/guru/presensi', icon: ClipboardList },
-                { title: 'Scan QR', href: '/guru/presensi/scan', icon: ScanLine },
+                { title: 'Dashboard', href: '/guru/dashboard', icon: LayoutGrid },
                 { title: 'Izin Siswa', href: '/guru/izin', icon: FileText },
             ];
         case 'siswa':
             return [
                 ...common,
-                { title: 'QR Code', href: '/siswa/qr-code', icon: QrCode },
                 { title: 'Riwayat Presensi', href: '/siswa/presensi', icon: ClipboardList },
             ];
         case 'orang_tua':

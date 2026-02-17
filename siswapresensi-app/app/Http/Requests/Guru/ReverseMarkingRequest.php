@@ -25,7 +25,7 @@ class ReverseMarkingRequest extends FormRequest
         return [
             'jadwal_id' => ['required', 'exists:jadwal,id'],
             'tanggal' => ['required', 'date'],
-            'absensi' => ['required', 'array'],
+            'absensi' => ['present', 'array'],
             'absensi.*.siswa_id' => ['required', 'exists:siswa,id'],
             'absensi.*.status' => ['required', 'in:izin,sakit,alpha'],
         ];

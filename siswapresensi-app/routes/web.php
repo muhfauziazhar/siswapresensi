@@ -39,9 +39,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 
 // Guru routes
 Route::middleware(['auth', 'verified', 'role:guru'])->prefix('guru')->name('guru.')->group(function () {
-    Route::get('presensi', [GuruPresensiController::class, 'index'])->name('presensi.index');
-    Route::get('presensi/scan', [GuruPresensiController::class, 'scan'])->name('presensi.scan');
-    Route::post('presensi/scan', [GuruPresensiController::class, 'storeScan'])->name('presensi.store-scan');
     Route::get('presensi/{jadwal}', [GuruPresensiController::class, 'show'])->name('presensi.show');
     Route::post('presensi/reverse-marking', [GuruPresensiController::class, 'reverseMarking'])->name('presensi.reverse-marking');
 

@@ -16,26 +16,6 @@ use Inertia\Response;
 class PresensiController extends Controller
 {
     /**
-     * Show guru's jadwal for today.
-     */
-    public function index(Request $request): Response
-    {
-        $guru = auth()->user()->guru;
-
-        $jadwalHariIni = Jadwal::query()
-            ->where('guru_id', $guru->id)
-            ->aktif()
-            ->hariIni()
-            ->with(['kelas', 'mapel'])
-            ->orderBy('waktu_mulai')
-            ->get();
-
-        return Inertia::render('guru/presensi/index', [
-            'jadwalHariIni' => $jadwalHariIni,
-        ]);
-    }
-
-    /**
      * Show attendance form for a specific jadwal.
      */
     public function show(Jadwal $jadwal): Response
@@ -63,77 +43,6 @@ class PresensiController extends Controller
             'siswaList' => $siswaList,
             'presensiRecords' => $presensiRecords,
         ]);
-    }
-
-    /**
-     * Show QR scanner page.
-     */
-    public function scan(): Response
-    {
-        return Inertia::render('guru/presensi/scan');
-    }
-
-    /**
-     * Process QR code scan.
-     */
-    public function storeScan(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'qr_data' => ['required', 'string'],
-        ]);
-
-        $qrData = $request->input('qr_data');
-
-        // Try to decode as base64 JSON (per-jadwal QR)
-        $decoded = json_decode(base64_decode($qrData), true);
-
-        if ($decoded && isset($decoded['siswa_id'], $decoded['jadwal_id'], $decoded['expires_at'])) {
-            // Per-jadwal QR
-            if (now()->isAfter($decoded['expires_at'])) {
-                return back()->with('error', 'QR code sudah expired.');
-            }
-
-            $siswa = Siswa::findOrFail($decoded['siswa_id']);
-            $jadwal = Jadwal::findOrFail($decoded['jadwal_id']);
-            $qrType = 'jadwal';
-        } else {
-            // General QR (UUID token)
-            $siswa = Siswa::where('qr_code_token', $qrData)->firstOrFail();
-            $guru = auth()->user()->guru;
-
-            $jadwal = Jadwal::where('guru_id', $guru->id)
-                ->aktif()
-                ->hariIni()
-                ->where('kelas_id', $siswa->kelas_id)
-                ->first();
-
-            if (! $jadwal) {
-                return back()->with('error', 'Tidak ada jadwal aktif untuk siswa ini.');
-            }
-
-            $qrType = 'general';
-        }
-
-        // Check existing
-        $existing = Presensi::where('siswa_id', $siswa->id)
-            ->where('jadwal_id', $jadwal->id)
-            ->where('tanggal', now()->toDateString())
-            ->first();
-
-        if ($existing) {
-            return back()->with('error', 'Siswa sudah presensi hari ini.');
-        }
-
-        Presensi::create([
-            'siswa_id' => $siswa->id,
-            'jadwal_id' => $jadwal->id,
-            'status' => 'hadir',
-            'tanggal' => now()->toDateString(),
-            'qr_type' => $qrType,
-            'marked_by' => auth()->id(),
-        ]);
-
-        return back()->with('success', 'Presensi berhasil dicatat.');
     }
 
     /**
